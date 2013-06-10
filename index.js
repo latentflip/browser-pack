@@ -36,12 +36,19 @@ module.exports = function (opts) {
     return duplexer(parser, output);
     
     function write (row) {
+        var sourceFilePath;
         if (first) this.queue((opts.prelude || prelude) + '({');
         
         if (row.sourceFile) { 
-            sourcemap = sourcemap || combineSourceMap.create();
+            sourcemap = sourcemap || combineSourceMap.create(null, null, { disableSourcesContent: opts.disableSourcesContent });
+
+            if (opts.stripFromSources)
+              sourceFilePath = row.sourceFile.replace(stripFromSources, '');
+            else
+              sourceFilePath = row.sourceFile;
+
             sourcemap.addFile(
-                { sourceFile: row.sourceFile, source: row.source },
+                { sourceFile: sourceFilePath, source: row.source },
                 { line: lineno }
             );
         }
